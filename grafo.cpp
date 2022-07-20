@@ -261,13 +261,18 @@ int Grafo_mat3::degUser(int j){
   return deg;
 }
 
-int Grafo_mat3::maxdegTweetId(){
-  int deg = 0;
+int* Grafo_mat3::maxdegTweetId(){
+  int* deg_index = new int[2];
+  deg_index[0] = 0;
+
   for(int k=0;k<n_tid;k++){
     int aux = Grafo_mat3::degTweetId(k);
-    if(aux>deg) deg=aux;
+    if(aux>deg_index[0]){
+        deg_index[0] = aux;
+        deg_index[1] = k;
+    }
   }
-  return deg;
+  return deg_index;
 }
 
 int* Grafo_mat3::maxdegDate(){
@@ -311,13 +316,17 @@ int* Grafo_mat3::maxdegUser(){
   return deg_index;
 }
 
-int Grafo_mat3::mindegTweetId(){
-  int deg = 3 + n_word; //1 Fecha+1 Usuario+ n_word Palabras
+int* Grafo_mat3::mindegTweetId(){
+  int* deg_index = new int[2];
+  deg_index[0] = 3 + n_word; //1 Fecha+1 Usuario+ n_word Palabras
   for(int k=0;k<n_tid;k++){
     int aux = Grafo_mat3::degTweetId(k);
-    if(aux<deg) deg=aux;
+    if(aux<deg_index[0] && aux>0){
+      deg_index[0] = aux;
+      deg_index[1] = k;
+    }
   }
-  return deg;
+  return deg_index;
 }
 
 int* Grafo_mat3::mindegDate(){
@@ -382,4 +391,17 @@ std::vector<int> Grafo_mat3::getDatesFromWord(std::vector<int> words_hashes){
     if(!flag) dates.push_back(i);
   }
   return dates;
+}
+
+float Grafo_mat3::propofwordsfromuser(int word, int user){
+  float total = Grafo_mat3::degUser(user);
+  float frec_word = 0;
+  for(int i=0;i<n_tid;i++){
+    if(Mat_user[i][user] == 1){
+      if(Mat_word[i][word] == 1){
+        frec_word += 1;
+      }
+    }
+  }
+  return frec_word / total;
 }

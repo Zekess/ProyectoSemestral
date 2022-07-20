@@ -31,21 +31,21 @@ class Grafo_mat3{
     int degDate(int j);
     int degWord(int j);
     int degUser(int j);
-    int maxdegTweetId();
+    int* maxdegTweetId();
     int* maxdegDate();
     int* maxdegWord();
     int* maxdegUser();
-    int mindegTweetId();
+    int* mindegTweetId();
     int* mindegDate();
     int* mindegWord();
     int* mindegUser();
     std::vector<int> getUserFromWord(int word_hash);
     std::vector<int> getDatesFromWord(std::vector<int> words_hashes);
-
+		float propofwordsfromuser(int word, int user);
+		std::vector<std::string> data_TweetId;
 
 	private:
     int m;
-    std::vector<std::string> data_TweetId;
     int n_tid;                                 // Número de TweetId's
 		std::vector<std::vector<int>> Mat_date;   // Matriz ady para Dates
     int n_date;                               // Número de TweetDate's

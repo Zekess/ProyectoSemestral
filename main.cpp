@@ -2,15 +2,18 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include <ctime>
+#include <chrono>
 #include "hash_table.h"
 #include "grafo.h"
 
 using namespace std;
+using namespace std::chrono;
 
 //"TweetId","TweetDate","TweetText","UserId"
 
+
 int main(){
+  auto start1 = high_resolution_clock::now();
   // Creamos el grafo que se define en el proyecto
 
   // Cargamos las tablas hash para las 4 columnas del CSV
@@ -66,6 +69,17 @@ int main(){
   }
   else cout<<"No se pudo abrir el archivo\n";
 
+  auto stop1 = high_resolution_clock::now();
+
+  auto duration1 = duration_cast<microseconds>(stop1 - start1);
+
+  cout  << "Tiempo de consutrcción de tablas hash: " << duration1.count() << endl;
+
+  auto start2 = high_resolution_clock::now();
+  cout << "N_TweetIds = " << 5113 << endl;
+  cout << "N_TweetDates = " << TweetDate.getSize() << endl;
+  cout << "N_Palabras = " << TweetText.getSize() << endl;
+  cout << "N_Users = " << UserId.getSize() << endl;
   Grafo_mat3 grafo(5113, TweetDate.getSize(), TweetText.getSize(), UserId.getSize());
 
   fstream file2(fname, ios::in);
@@ -111,6 +125,12 @@ int main(){
     }
   }
   else cout<<"No se pudo abrir el archivo\n";
+
+  auto stop2 = high_resolution_clock::now();
+
+  auto duration2 = duration_cast<microseconds>(stop2 - start2);
+
+  cout  << "Tiempo de consutrcción del grafo: " << duration2.count() << endl;
   /*
   // Comienza la experimentación con las estructuras ya creadas.
   int rep = 100;
@@ -197,12 +217,23 @@ int main(){
   cout << ";" << double(end - begin) / (rep * CLOCKS_PER_SEC) << endl;
 
   */
-  cout << "Mínimo grado de TweetId: " << grafo.maxdegTweetId() << endl;
-  cout << "Mínimo grado de TweetId: " << grafo.mindegTweetId() << endl;
 
-  int* max = grafo.maxdegDate();
+  auto start3 = high_resolution_clock::now();
+  cout << "Cantidad de Vértices del tipo TweetId: " << grafo.numVerticesTweetId() << endl;
+  cout << "Cantidad de Vértices del tipo TweetDate: " << grafo.numVerticesDate() << endl;
+  cout << "Cantidad de Vértices del tipo Palabra: " << grafo.numVerticesWord() << endl;
+  cout << "Cantidad de Vértices del tipo UserId: " << grafo.numVerticesUser() << endl;
+  cout << "Cantidad de Vértices totales: " << grafo.numVertices() << endl;
+  cout << "Cantidad de aristas: " << grafo.numEdges() << endl;
+
+  int* max = grafo.maxdegTweetId();
+  cout << "Máximo grado de TweetId: " << max[0] << ". Y el TweetId es: " << grafo.data_TweetId[max[1]] << endl;
+  int* min = grafo.mindegTweetId();
+  cout << "Mínimo grado de TweetId: " << min[0] << ". Y el TweetId es: " << grafo.data_TweetId[min[1]] << endl;
+
+  max = grafo.maxdegDate();
   cout << "Máximo grado de Date: " << max[0] << ". Y la fecha es: " << TweetDate.getWord(max[1]) << endl;
-  int* min = grafo.mindegDate();
+  min = grafo.mindegDate();
   cout << "Mínimo grado de Date: " << min[0] << ". Y la fecha es: " << TweetDate.getWord(min[1]) << endl;
 
   max = grafo.maxdegWord();
@@ -225,17 +256,29 @@ int main(){
   }
   cout << "\nEn total son: " << users.size() << endl;
 
-  cout << "size: " << sizeof(Grafo_mat3);
-  string palabras[2] = {"@apple", "iphone"};
+  cout << "Size grafo: " << sizeof(grafo) << endl;
+  cout << "Size hash fecha: " << sizeof(TweetDate) << endl;
+  cout <<  "Size hash text: " << sizeof(TweetText) << endl;
+  cout <<  "Size hash userid: " << sizeof(UserId) << endl;
+
+  string palabras[2] = {"@apple", "thanks"};
   std::vector<int> hashes_words;
   for(int i=0;i<2;i++){
     hashes_words.push_back(TweetText.getIndex(palabras[i]));
   }
 
   std::vector<int> hashes_dates = grafo.getDatesFromWord(hashes_words);
-  cout << "Fechas encontradas:\n";
+  cout << "Fechas encontradas en las que se han dicho las palabras @apple e developer:\n";
   for(int i=0;i<hashes_dates.size();i++){
     cout << TweetDate.getWord(hashes_dates[i]) << endl;
   }
+
+  cout << "El usuario aplthanks tiuene prop: " << grafo.propofwordsfromuser(TweetText.getIndex("@apple"), UserId.getIndex("443653605")) << endl;
+
+  auto stop3 = high_resolution_clock::now();
+
+  auto duration3 = duration_cast<microseconds>(stop3 - start3);
+
+  cout  << "Tiempo de consultas: " << duration3.count() << endl;
   return 0;
 }
