@@ -9,6 +9,11 @@ Grafo_mat3::Grafo_mat3(int n, int n1, int n2, int n3){
   n_uid = 0;
   n_edges = 0;
 
+  // Inicializamos el arreglo de TweetIds
+  for(int i = 0; i < n; i++){
+    data_TweetId.push_back(" ");
+  }
+
   //Inicializamos las matrices de adyacencia:
   // Mat_date (Fechas)
   for(int i = 0; i < n; i++){
@@ -35,19 +40,28 @@ Grafo_mat3::Grafo_mat3(int n, int n1, int n2, int n3){
     Mat_user.push_back(fila);
   }
 
-  // Mat_aux (Matriz auxiliar, cuarta función)
+  // Mat_word_user (Matriz Mat_word_user, tercera función)
+  for(int i = 0; i < n2; i++){
+    std::vector<int> fila;
+    for(int j=0;j<n3;j++){
+      fila.push_back(0);
+    }
+    Mat_word_user.push_back(fila);
+  }
+
+  // Mat_date_word (Matriz auxiliar, cuarta función)
   for(int i = 0; i < n1; i++){
     std::vector<int> fila;
     for(int j=0;j<n2;j++){
       fila.push_back(0);
     }
-    Mat_aux.push_back(fila);
+    Mat_date_word.push_back(fila);
   }
 }
 
 void Grafo_mat3::insertDate(std::string T_id, int j){
   // Agregamos el TweetID. Siempre se debe insertar la fecha primero
-  data_TweetId.push_back(T_id);
+  data_TweetId[n_tid] = T_id;
   n_tid += 1;
   // Insertamos la fecha y aumetamos los contadores según corresponda
   if(!(Grafo_mat3::IsDateInserted(j))) n_date += 1;
@@ -95,10 +109,16 @@ bool Grafo_mat3::IsUserInserted(int j){
   return false;
 }
 
+void Grafo_mat3::insertWordUser(int i, int j){
+  // i: Hash de la fecha correspondiente
+  // j: Hash de la palabra correspondiente
+  Mat_word_user[i][j] = 1;
+}
+
 void Grafo_mat3::insertDateWord(int i, int j){
   // i: Hash de la fecha correspondiente
   // j: Hash de la palabra correspondiente
-  Mat_aux[i][j] = 1;
+  Mat_date_word[i][j] = 1;
 }
 
 int Grafo_mat3::numVertices(){
@@ -342,19 +362,8 @@ int* Grafo_mat3::mindegUser(){
 std::vector<int> Grafo_mat3::getUserFromWord(int word_hash){
   std::vector<int> users;
   // Buscar TweetIds conectadas a word_hash:
-  std::vector<int> TweetIds;
-  for(int i=0;i<n_tid;i++){
-    if(Mat_word[i][word_hash] == 1) TweetIds.push_back(i);
-  }
-
-  // Buscar usuarios conectados a la TweetId:
   for(int i=0;i<n_uid;i++){
-    for(int j=0;j<TweetIds.size();j++){
-      if(Mat_user[TweetIds[j]][i] == 1){
-        users.push_back(i);
-        break;
-      }
-    }
+    if(Mat_word_user[word_hash][i] == 1) users.push_back(i);
   }
   return users;
 }
@@ -365,7 +374,7 @@ std::vector<int> Grafo_mat3::getDatesFromWord(std::vector<int> words_hashes){
   for(int i=0;i<n_date;i++){
     flag = 0;
     for(int j=0;j<words_hashes.size();j++){
-      if(Mat_aux[i][words_hashes[j]] == 0){
+      if(Mat_date_word[i][words_hashes[j]] == 0){
           flag = 1;
           break;
       }

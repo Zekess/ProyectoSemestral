@@ -2,8 +2,6 @@
 
 Hash_table::Hash_table(int n){
   size = n;
-  //bloques = n;
-  //size = pow(16,n);
   nused = 0;
 
   //Creamos el arreglo con la palabra de relleno escogida (".")

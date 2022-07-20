@@ -17,6 +17,7 @@ class Grafo_mat3{
     bool IsWordInserted(int j);
     void insertUser(int j);
     bool IsUserInserted(int j);
+		void insertWordUser(int i, int j);
     void insertDateWord(int i, int j);
 		//bool areAdjacent(int a, int b);
     int numVertices();
@@ -54,7 +55,8 @@ class Grafo_mat3{
     int n_uid;                               // Número de UserId's
     int n_edges;
 
-    std::vector<std::vector<int>> Mat_aux;    //Matriz auxiliar palabra x fecha
+		std::vector<std::vector<int>> Mat_word_user;    //Matriz auxiliar palabra x usuarios
+    std::vector<std::vector<int>> Mat_date_word;    //Matriz auxiliar fecha x palabra
 };
 
 

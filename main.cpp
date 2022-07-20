@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <ctime>
 #include "hash_table.h"
 #include "grafo.h"
 
@@ -17,7 +18,6 @@ int main(){
   Hash_table TweetDate(1000);
   Hash_table TweetText(1000);
   Hash_table UserId(1000);
-  cout << "Tablas creadas:";
   // Preparamos las variables a usar.
   // line: leerá columnas completas.
   // columna: leerá el contenido de cada columna en la linea "line".
@@ -26,7 +26,7 @@ int main(){
   string line, columna, tweet_id, palabra;
   // j: leerá el vértice asociado a la columnas TweetDate, UserId
   // k: leerá el vértice asociado a las palabras de la columna TweetText
-  int j, k;
+  int j, k, l;
 
   // Cargamos el CSV
   string fname;
@@ -66,7 +66,6 @@ int main(){
   }
   else cout<<"No se pudo abrir el archivo\n";
 
-  cout << "Elementos en las tablas: " << TweetDate.getNumElements() << " - " << TweetText.getNumElements() << " - " <<UserId.getNumElements();
   Grafo_mat3 grafo(5113, TweetDate.getSize(), TweetText.getSize(), UserId.getSize());
 
   fstream file2(fname, ios::in);
@@ -96,44 +95,109 @@ int main(){
       // Procesamos las de palabras TweetText:
       stringstream str2(columna);
 
+      // Columna con UserId
+      getline(str, columna, ',');
+      l =  UserId.getIndex(columna);
+      grafo.insertUser(l);                //Insertamos la arista (i,j)
+
       while(getline(str2, palabra, ' ')){
         k = TweetText.getIndex(palabra);
         grafo.insertWord(k);
         grafo.insertDateWord(j, k);               //Insertamos la arista (i,j)
+        grafo.insertWordUser(k,l);
       }
 
-      // Columna con UserId
-      getline(str, columna, ',');
-      j =  UserId.getIndex(columna);
-      grafo.insertUser(j)  ;                //Insertamos la arista (i,j)
+
     }
   }
   else cout<<"No se pudo abrir el archivo\n";
-  cout << "Se completó todo...\n";
   /*
-  cout << endl;
-  cout << "\nTweetId:\n";
-  cout << "(grafo) La cantidad de TweetId's insertados es: " << grafo.numVerticesTweetId() << endl;
-  //cout << "El tamaño de la tabla hash es: " << TweetId.getSize() << endl;
+  // Comienza la experimentación con las estructuras ya creadas.
+  int rep = 100;
+  int* aux;
+  clock_t begin, end;
+  // La fecha en la que se han publicado más tweets
 
-  cout << "\nTweetDate:\n";
-  cout << "(hash) La cantidad de fechas insertadas es: " << TweetDate.getNumElements() << endl;
-  cout << "(grafo) La cantidad de fechas insertadas es: " << grafo.numVerticesDate() << endl;
-  cout << "El tamaño de la tabla hash es: " << TweetDate.getSize() << endl;
+  string date_maxdeg;
+  begin = clock();
+  for(int i=0; i<rep; i++){
+      aux = grafo.maxdegDate();
+      date_maxdeg = TweetDate.getWord(aux[1]);
+  }
+  end = clock();
+  cout << date_maxdeg << ";" << double(end - begin) / (rep * CLOCKS_PER_SEC) << endl;
 
-  cout << "\nTweetText:\n";
-  cout << "(hash) La cantidad de palabras insertadas es: " << TweetText.getNumElements() << endl;
-  cout << "(grafo) La cantidad de palabras insertadas es: " << grafo.numVerticesWord() << endl;
-  cout << "El tamaño de la tabla hash es: " << TweetText.getSize() << endl;
+  //El usuario que ha publicado más tweets
+  string user_maxdeg;
+  int* aux2;
+  begin = clock();
+  for(int i=0; i<rep; i++){
+      aux2 = grafo.maxdegUser();
+      user_maxdeg = UserId.getWord(aux[1]);
+  }
+  end = clock();
+  cout << user_maxdeg << ";" << double(end - begin) / (rep * CLOCKS_PER_SEC) << endl;
 
-  cout << "\nUserId:\n";
-  cout << "(hash) La cantidad de usuarios insertados es: " << UserId.getNumElements() << endl;
-  cout << "(grafo) La cantidad de usuarios insertadas es: " << grafo.numVerticesUser() << endl;
-  cout << "El tamaño de la tabla hash es: " << UserId.getSize() << endl;
+  //La lista de usuarios que han publicado tweets que contengan una palabra dada por entrada
+  vector<int> aux3;
+  begin = clock();
+  vector<string> users_google2;
+  for(int i=0; i<rep; i++){
+      vector<string> users_google;
+      aux3 = grafo.getUserFromWord(TweetText.getIndex("google"));
+      for(int j=0;j<aux3.size();j++){
+        users_google.push_back(UserId.getWord(aux3[j]));
+      }
+      users_google2 = users_google;
+  }
+  end = clock();
+  for(int i=0;i<users_google2.size();i++){
+    cout << users_google2[i] << " ";
+  }
+  cout << ";" << double(end - begin) / (rep * CLOCKS_PER_SEC) << endl;
+
+  vector<int> aux4;
+  begin = clock();
+  vector<string> users_apple2;
+  for(int i=0; i<rep; i++){
+      vector<string> users_apple;
+      aux4 = grafo.getUserFromWord(TweetText.getIndex("apple"));
+      for(int j=0;j<aux4.size();j++){
+        users_apple.push_back(UserId.getWord(aux4[j]));
+      }
+      users_apple2 = users_apple;
+  }
+  end = clock();
+  for(int i=0;i<users_apple2.size();i++){
+    cout << users_apple2[i] << " ";
+  }
+  cout << ";" << double(end - begin) / (rep * CLOCKS_PER_SEC) << endl;
+
+  //Las fechas en las que se han publicado todas las palabras de una lista dada por entrada.
+  vector<int> aux5;
+  string palabras[3] = {"apple", "iphone", "crack"};
+  vector<string> dates2;
+  begin = clock();
+  for(int i=0; i<rep; i++){
+    vector<int> index;
+    for(int j=0;j<3;j++){
+      index.push_back(TweetText.getIndex(palabras[j]));
+    }
+    aux5 = grafo.getDatesFromWord(index);
+    vector<string> dates;
+    for(int j=0;j<aux5.size();j++){
+      dates.push_back(TweetDate.getWord(aux5[j]));
+    }
+    dates2 = dates;
+  }
+  end = clock();
+  for(int i=0;i<dates2.size();i++){
+    cout << dates2[i] << " ";
+  }
+  cout << ";" << double(end - begin) / (rep * CLOCKS_PER_SEC) << endl;
+
   */
-  //grafo.printAdj();
-  /*
-  cout << "Máximo grado de TweetId: " << grafo.maxdegTweetId() << endl;
+  cout << "Mínimo grado de TweetId: " << grafo.maxdegTweetId() << endl;
   cout << "Mínimo grado de TweetId: " << grafo.mindegTweetId() << endl;
 
   int* max = grafo.maxdegDate();
@@ -151,15 +215,17 @@ int main(){
   min = grafo.mindegUser();
   cout << "Mínimo grado de User: " << min[0] << ". Y el user es: " << UserId.getWord(min[1]) << endl;
 
+
   string word = "google";
   cout << "Usuarios que han dicho " << word << ": ";
   int word_hash = TweetText.getIndex(word);
   vector<int> users = grafo.getUserFromWord(word_hash);
   for(int i=0;i<users.size();i++){
-    cout << users[i] << " - ";
+    cout << UserId.getWord(users[i]) << " - ";
   }
-  cout << "\nEn total son: " << users.size() << endl;*/
+  cout << "\nEn total son: " << users.size() << endl;
 
+  cout << "size: " << sizeof(Grafo_mat3);
   string palabras[2] = {"@apple", "iphone"};
   std::vector<int> hashes_words;
   for(int i=0;i<2;i++){
